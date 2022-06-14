@@ -224,7 +224,7 @@ class ImportBulkView(View):
                             res = res.strip()
                   
                             r = SubjectsModel.objects.filter(Subjectstaught=res).first()
-                            print(res,"------------",r)
+                            
                             if r is not None:
                  
                                 newteacher.Subjectstaught.add(r)
