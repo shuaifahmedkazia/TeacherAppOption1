@@ -159,7 +159,7 @@ class ImportBulkView(View):
 
             # l2 = len(FirstName)
             sub = Subjectstaught.split(', ')
-            subjects = Subjectstaught.split(', ')
+            subjects = Subjectstaught.split(',')
            
             sub = len(sub)
             if sub <= 5:
@@ -170,6 +170,7 @@ class ImportBulkView(View):
 
                 for res in subjects:
                     res = res.lower()
+                    res = res.strip()
                   
                     r = SubjectsModel.objects.get(Subjectstaught=res)
                  
@@ -192,6 +193,7 @@ class ImportBulkView(View):
             df = pd.read_csv(path, encoding='utf-8')
             li = checkData()
             data_added = 0
+            subject_added = 0
             for i in df.index:
                 FirstName = df['First Name'][i]
                 LastName = df['Last Name'][i]
@@ -216,17 +218,29 @@ class ImportBulkView(View):
                                             EmailAddress=EmailAddress, PhoneNumber=PhoneNumber, RoomNumber=RoomNumber)
                 
                         newteacher.save()
-                        data_added +=1
+                        
                         for res in subjects:
                             res = res.lower()
+                            res = res.strip()
                   
-                            r = SubjectsModel.objects.get(Subjectstaught=res)
+                            r = SubjectsModel.objects.filter(Subjectstaught=res).first()
+                            print(res,"------------",r)
+                            if r is not None:
                  
-                            newteacher.Subjectstaught.add(r)
+                                newteacher.Subjectstaught.add(r)
+                            else:
+                                new_sub = SubjectsModel.objects.create(Subjectstaught=res)
+                                new_sub.save()
+                                subject_added +=1
+                                newteacher.Subjectstaught.add(r)
+
+                        data_added +=1
                     except:
                         pass
-
-            messages.success(request, str(data_added)+' Data Imported')
+            if subject_added > 0 :
+                messages.success(request, str(data_added)+' Data Imported and '+ str(subject_added)+" subjects added")
+            else:          
+                messages.success(request, str(data_added)+' Data Imported')
             return render(request, 'importerform.html', {})
 
 
